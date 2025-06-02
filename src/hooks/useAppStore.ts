@@ -4,11 +4,15 @@ import { Store } from "@tauri-apps/plugin-store";
 interface AppState {
   dumpJsonFile: string;
   outputFolder: string;
+  gamePakFolder: string;
+  modFolder: string;
 }
 
 const defaultState: AppState = {
   dumpJsonFile: "",
   outputFolder: "",
+  gamePakFolder: "",
+  modFolder: "",
 };
 
 export const useAppStore = () => {
@@ -59,10 +63,20 @@ export const useAppStore = () => {
     updateState({ outputFolder: folder });
   };
 
+  const setGamePakFolder = (folder: string) => {
+    updateState({ gamePakFolder: folder });
+  };
+
+  const setModFolder = (folder: string) => {
+    updateState({ modFolder: folder });
+  };
+
   return {
     state,
     setDumpJsonFile,
     setOutputFolder,
+    setGamePakFolder,
+    setModFolder,
     isLoading,
   };
 }; 

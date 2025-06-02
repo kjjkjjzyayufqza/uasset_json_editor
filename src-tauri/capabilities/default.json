@@ -16,7 +16,11 @@
     "shell:default",
     {
       "identifier": "fs:scope",
-      "allow": [{ "path": "*/**" }]
+      "allow": [
+        {
+          "path": "*/**"
+        }
+      ]
     },
     "dialog:default",
     "store:default",

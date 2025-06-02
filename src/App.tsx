@@ -3,12 +3,13 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { FilePicker } from "../components/ui/file-picker";
 import { useAppStore } from "./hooks/useAppStore";
-import { readJsonFile, copyFileToOutput, JsonData } from "./lib/fileUtils";
+import { readJsonFile, JsonData } from "./lib/fileUtils";
+import { executeFullConversion } from "./lib/shellUtils";
 import { Package, FileText, FolderOpen, CheckCircle, AlertCircle } from "lucide-react";
 import "./App.css";
 
 function App() {
-  const { state, setDumpJsonFile, setOutputFolder, isLoading } = useAppStore();
+  const { state, setDumpJsonFile, setOutputFolder, setGamePakFolder, setModFolder, isLoading } = useAppStore();
   const [jsonData, setJsonData] = useState<JsonData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -30,8 +31,11 @@ function App() {
   };
 
   const handlePack = async () => {
-    if (!state.dumpJsonFile || !state.outputFolder) {
-      setMessage({ type: "error", text: "Please select both JSON file and output folder" });
+    if (!state.dumpJsonFile || !state.outputFolder || !state.modFolder || !state.gamePakFolder) {
+      setMessage({ 
+        type: "error", 
+        text: "Please select JSON file, output folder, mod folder, and game pak folder" 
+      });
       return;
     }
 
@@ -39,11 +43,24 @@ function App() {
     setMessage(null);
 
     try {
-      const outputPath = await copyFileToOutput(state.dumpJsonFile, state.outputFolder);
-      setMessage({ 
-        type: "success", 
-        text: `File successfully packed to: ${outputPath}` 
-      });
+      const result = await executeFullConversion(
+        state.dumpJsonFile, 
+        state.outputFolder,
+        state.modFolder,
+        state.gamePakFolder
+      );
+      
+      if (result.success) {
+        setMessage({ 
+          type: "success", 
+          text: result.message
+        });
+      } else {
+        setMessage({ 
+          type: "error", 
+          text: result.message 
+        });
+      }
     } catch (error) {
       setMessage({ type: "error", text: `Failed to pack file: ${error}` });
     } finally {
@@ -104,7 +121,7 @@ function App() {
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
-              Select output folder
+              Select <span className="font-bold">uasset & uexp</span> output folder
             </label>
             <FilePicker
               type="directory"
@@ -114,10 +131,38 @@ function App() {
             />
           </div>
 
+          {/* Select game pak folder */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <FolderOpen className="h-4 w-4" />
+              Select <span className="font-bold">game pak</span> folder
+            </label>
+            <FilePicker
+              type="directory"
+              value={state.gamePakFolder}
+              onChange={setGamePakFolder}
+              placeholder="Choose game pak folder..."
+            />
+          </div>
+
+          {/* Select mod folder */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <FolderOpen className="h-4 w-4" />
+              Select <span className="font-bold">mod</span> folder
+            </label>
+            <FilePicker
+              type="directory"
+              value={state.modFolder}
+              onChange={setModFolder}
+              placeholder="Choose mod folder..."
+            />
+          </div>
+
           {/* Pack button */}
           <Button
             onClick={handlePack}
-            disabled={!state.dumpJsonFile || !state.outputFolder || isProcessing}
+            disabled={!state.dumpJsonFile || !state.outputFolder || !state.modFolder || !state.gamePakFolder || isProcessing}
             className="w-full"
             size="lg"
           >
