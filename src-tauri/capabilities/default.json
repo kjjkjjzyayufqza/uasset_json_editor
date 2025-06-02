@@ -12,6 +12,8 @@
     "fs:allow-read-text-file",
     "fs:allow-resource-read-recursive",
     "fs:allow-write-text-file",
+    "shell:allow-open",
+    "shell:default",
     {
       "identifier": "fs:scope",
       "allow": [{ "path": "*/**" }]
